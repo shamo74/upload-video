@@ -22,9 +22,9 @@
         }
     </style>
     <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
-    <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js"></script>
     <!-- Add Firebase products that you want to use -->
-    <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-storage.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-analytics.js"></script>
 </head>
 <body>
     <h1>Upload Video</h1>
@@ -38,47 +38,43 @@
     </div>
 
     <script>
-        // تكوين Firebase الخاص بك
+             // Your web app's Firebase configuration
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyDOq-QUoAav6TV72BCGbSdCJjyb2pcuV_E",
+            authDomain: "upload-video-cbc58.firebaseapp.com",
+            projectId: "upload-video-cbc58",
+            storageBucket: "upload-video-cbc58.appspot.com",
+            messagingSenderId: "962019643419",
+            appId: "1:962019643419:web:cefbebb66c573ae840e8be"
         };
 
         // Initialize Firebase
         const app = firebase.initializeApp(firebaseConfig);
         const storage = firebase.storage();
 
-        // وظيفة لرفع الفيديو
-        function uploadVideo() {
-            const fileInput = document.getElementById('videoUpload');
-            const file = fileInput.files[0];
+        document.getElementById('videoUpload').addEventListener('change', function(event) {
+            const file = event.target.files[0];
             if (file) {
                 const storageRef = storage.ref('videos/' + file.name);
                 storageRef.put(file).then((snapshot) => {
                     snapshot.ref.getDownloadURL().then((url) => {
-                        // عرض الفيديو
+                        // Display the video
                         const videoPlayer = document.getElementById('videoPlayer');
                         videoPlayer.src = url;
                         videoPlayer.load();
                         videoPlayer.play();
 
-                        // عرض رابط الفيديو
+                        // Display the video link
                         const videoLink = document.getElementById('videoLink');
                         videoLink.href = url;
                         videoLink.textContent = url;
                         document.getElementById('videoLinkContainer').style.display = 'block';
                     });
                 }).catch((error) => {
-                    console.error('فشل الرفع:', error);
+                    console.error('Upload failed:', error);
                 });
-            } else {
-                console.error('لم يتم اختيار ملف');
             }
-        }
+        });
     </script>
 </body>
 </html>
