@@ -13,27 +13,31 @@
         const app = firebase.initializeApp(firebaseConfig);
         const storage = firebase.storage();
 
-        document.getElementById('videoUpload').addEventListener('change', function(event) {
-            const file = event.target.files[0];
+        // وظيفة لرفع الفيديو
+        function uploadVideo() {
+            const fileInput = document.getElementById('videoUpload');
+            const file = fileInput.files[0];
             if (file) {
                 const storageRef = storage.ref('videos/' + file.name);
                 storageRef.put(file).then((snapshot) => {
                     snapshot.ref.getDownloadURL().then((url) => {
-                        // Display the video
+                        // عرض الفيديو
                         const videoPlayer = document.getElementById('videoPlayer');
                         videoPlayer.src = url;
                         videoPlayer.load();
                         videoPlayer.play();
 
-                        // Display the video link
+                        // عرض رابط الفيديو
                         const videoLink = document.getElementById('videoLink');
                         videoLink.href = url;
                         videoLink.textContent = url;
                         document.getElementById('videoLinkContainer').style.display = 'block';
                     });
                 }).catch((error) => {
-                    console.error('Upload failed:', error);
+                    console.error('فشل الرفع:', error);
                 });
+            } else {
+                console.error('لم يتم اختيار ملف');
             }
-        });
+        }
     </script>
