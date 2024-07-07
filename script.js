@@ -11,33 +11,30 @@
 
         // Initialize Firebase
         const app = firebase.initializeApp(firebaseConfig);
-        const storage = firebase.storage();
+        const database = firebase.database();
 
-        // وظيفة لرفع الفيديو
-        function uploadVideo() {
-            const fileInput = document.getElementById('videoUpload');
-            const file = fileInput.files[0];
-            if (file) {
-                const storageRef = storage.ref('videos/' + file.name);
-                storageRef.put(file).then((snapshot) => {
-                    snapshot.ref.getDownloadURL().then((url) => {
-                        // عرض الفيديو
-                        const videoPlayer = document.getElementById('videoPlayer');
-                        videoPlayer.src = url;
-                        videoPlayer.load();
-                        videoPlayer.play();
+        // مرجع لقاعدة البيانات
+        const videosRef = database.ref('videos');
 
-                        // عرض رابط الفيديو
-                        const videoLink = document.getElementById('videoLink');
-                        videoLink.href = url;
-                        videoLink.textContent = url;
-                        document.getElementById('videoLinkContainer').style.display = 'block';
-                    });
-                }).catch((error) => {
-                    console.error('فشل الرفع:', error);
-                });
-            } else {
-                console.error('لم يتم اختيار ملف');
+        // استرجاع البيانات من Firebase وعرضها
+        videosRef.on('value', (snapshot) => {
+            const videos = snapshot.val();
+            const videoList = document.getElementById('videoList');
+
+            videoList.innerHTML = ''; // تفريغ العناصر الحالية
+
+            for (let key in videos) {
+                const videoUrl = videos[key];
+                const videoElement = document.createElement('div');
+                videoElement.innerHTML = `
+                    <h3>فيديو</h3>
+                    <video controls>
+                        <source src="${videoUrl}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                `;
+                videoList.appendChild(videoElement);
             }
-        }
+        });
+
     </script>
