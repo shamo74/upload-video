@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload Video</title>
+    <title>Upload and Display Videos with Firebase</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -22,90 +22,76 @@
         }
     </style>
     <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
-    <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js"></script>
-    <!-- Add Firebase products that you want to use -->
-    <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-analytics.js"></script>
-</head>
-<body>
-    <h1>Upload Video</h1>
-    <div class="upload-container">
-        <input type="file" id="videoUpload" accept="video/*">
-        <button onclick="uploadVideo()">رفع الفيديو</button> <!-- زر رفع الفيديو -->
-    </div>
-    <video id="videoPlayer" controls></video>
-    <div class="video-link" id="videoLinkContainer" style="display: none;">
-        <p>رابط الفيديو: <a id="videoLink" href="#" target="_blank"></a></p>
-    </div>
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+        import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-storage.js";
 
-    <script>
-             // Your web app's Firebase configuration
+        // Your web app's Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyDOq-QUoAav6TV72BCGbSdCJjyb2pcuV_E",
             authDomain: "upload-video-cbc58.firebaseapp.com",
             projectId: "upload-video-cbc58",
             storageBucket: "upload-video-cbc58.appspot.com",
             messagingSenderId: "962019643419",
-            appId: "1:962019643419:web:cefbebb66c573ae840e8be"
+            appId: "1:962019643419:web:cefbebb66c573ae840e8be",
+            measurementId: "G-41RW7EEPBP"
         };
 
         // Initialize Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const storage = firebase.storage();
+        const app = initializeApp(firebaseConfig);
+        const storage = getStorage(app);
 
-        document.getElementById('videoUpload').addEventListener('change', function(event) {
-            const file = event.target.files[0];
+        // Function to handle video upload
+        function uploadVideo() {
+            const fileInput = document.getElementById('videoUpload');
+            const file = fileInput.files[0];
             if (file) {
-                const storageRef = storage.ref('videos/' + file.name);
-                storageRef.put(file).then((snapshot) => {
-                    snapshot.ref.getDownloadURL().then((url) => {
-                        // Display the video
-                        const videoPlayer = document.getElementById('videoPlayer');
-                        videoPlayer.src = url;
-                        videoPlayer.load();
-                        videoPlayer.play();
+                const storageRef = ref(storage, 'videos/' + file.name);
+                const uploadTask = uploadBytesResumable(storageRef, file);
 
-                        // Display the video link
-                        const videoLink = document.getElementById('videoLink');
-                        videoLink.href = url;
-                        videoLink.textContent = url;
-                        document.getElementById('videoLinkContainer').style.display = 'block';
-                    });
-                }).catch((error) => {
-                    console.error('Upload failed:', error);
-                });
+                uploadTask.on('state_changed', 
+                    (snapshot) => {
+                        // Handle progress
+                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        console.log('Upload is ' + progress + '% done');
+                    },
+                    (error) => {
+                        // Handle unsuccessful uploads
+                        console.error('Upload failed:', error);
+                    },
+                    () => {
+                        // Handle successful uploads on complete
+                        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                            // Display the video
+                            const videoPlayer = document.getElementById('videoPlayer');
+                            videoPlayer.src = downloadURL;
+                            videoPlayer.load();
+                            videoPlayer.play();
+
+                            // Display the video link
+                            const videoLink = document.getElementById('videoLink');
+                            videoLink.href = downloadURL;
+                            videoLink.textContent = downloadURL;
+                            document.getElementById('videoLinkContainer').style.display = 'block';
+                        });
+                    }
+                );
+            } else {
+                console.error('No file selected');
             }
-        });
+        }
     </script>
-</body>
-</html>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>عرض الفيديوهات</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        .video-container {
-            margin-bottom: 20px;
-        }
-        video {
-            max-width: 100%;
-            height: auto;
-            margin-top: 10px;
-        }
-    </style>
-    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
-    <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-app.js"></script>
-    <!-- Add Firebase products that you want to use -->
-    <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-database.js"></script>
 </head>
 <body>
-    <h1>عرض الفيديوهات</h1>
-    <div class="video-container" id="videoList">
-        <!-- هنا ستظهر الفيديوهات المرفوعة -->
+    <h1>Upload and Display Videos with Firebase</h1>
+    <div class="upload-container">
+        <input type="file" id="videoUpload" accept="video/*">
+        <button onclick="uploadVideo()">Upload Video</button>
     </div>
+    <video id="videoPlayer" controls></video>
+    <div class="video-link" id="videoLinkContainer" style="display: none;">
+        <p>Video URL: <a id="videoLink" href="#" target="_blank"></a></p>
+    </div>
+</body>
+</html>
