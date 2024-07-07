@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload and Display Video</title>
+    <title>Upload Video</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -15,6 +15,7 @@
         video {
             max-width: 100%;
             height: auto;
+            margin-top: 20px;
         }
         .video-link {
             margin-top: 20px;
@@ -26,11 +27,12 @@
     <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-storage.js"></script>
 </head>
 <body>
-    <h1>Upload and Display Video</h1>
+    <h1>Upload Video</h1>
     <div class="upload-container">
         <input type="file" id="videoUpload" accept="video/*">
+        <button onclick="uploadVideo()">رفع الفيديو</button> <!-- زر رفع الفيديو -->
     </div>
     <video id="videoPlayer" controls></video>
     <div class="video-link" id="videoLinkContainer" style="display: none;">
-        <p>Video URL: <a id="videoLink" href="#" target="_blank"></a></p>
+        <p>رابط الفيديو: <a id="videoLink" href="#" target="_blank"></a></p>
     </div>
