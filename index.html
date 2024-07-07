@@ -36,3 +36,80 @@
     <div class="video-link" id="videoLinkContainer" style="display: none;">
         <p>رابط الفيديو: <a id="videoLink" href="#" target="_blank"></a></p>
     </div>
+
+    <script>
+        // تكوين Firebase الخاص بك
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const storage = firebase.storage();
+
+        // وظيفة لرفع الفيديو
+        function uploadVideo() {
+            const fileInput = document.getElementById('videoUpload');
+            const file = fileInput.files[0];
+            if (file) {
+                const storageRef = storage.ref('videos/' + file.name);
+                storageRef.put(file).then((snapshot) => {
+                    snapshot.ref.getDownloadURL().then((url) => {
+                        // عرض الفيديو
+                        const videoPlayer = document.getElementById('videoPlayer');
+                        videoPlayer.src = url;
+                        videoPlayer.load();
+                        videoPlayer.play();
+
+                        // عرض رابط الفيديو
+                        const videoLink = document.getElementById('videoLink');
+                        videoLink.href = url;
+                        videoLink.textContent = url;
+                        document.getElementById('videoLinkContainer').style.display = 'block';
+                    });
+                }).catch((error) => {
+                    console.error('فشل الرفع:', error);
+                });
+            } else {
+                console.error('لم يتم اختيار ملف');
+            }
+        }
+    </script>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عرض الفيديوهات</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .video-container {
+            margin-bottom: 20px;
+        }
+        video {
+            max-width: 100%;
+            height: auto;
+            margin-top: 10px;
+        }
+    </style>
+    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-app.js"></script>
+    <!-- Add Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-database.js"></script>
+</head>
+<body>
+    <h1>عرض الفيديوهات</h1>
+    <div class="video-container" id="videoList">
+        <!-- هنا ستظهر الفيديوهات المرفوعة -->
+    </div>
