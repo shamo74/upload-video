@@ -1,0 +1,16 @@
+  <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .upload-container {
+            margin-bottom: 20px;
+        }
+        video {
+            max-width: 100%;
+            height: auto;
+        }
+        .video-link {
+            margin-top: 20px;
+        }
+    </style>
