@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عرض الفيديو</title>
+</head>
+<body>
+    <h1>عرض الفيديو</h1>
+    <div id="videoContainer">
+        <video controls width="600">
+            <source id="videoSource" src="" type="video/mp4">
+            متصفحك لا يدعم الفيديو.
+        </video>
+    </div>
+
+    <script>
+        function getQueryParam(name) {
+            const params = new URLSearchParams(window.location.search);
+            return params.get(name);
+        }
+
+        const videoUrl = getQueryParam('videoUrl');
+        if (videoUrl) {
+            document.getElementById('videoSource').src = videoUrl;
+        } else {
+            console.error('رابط الفيديو غير موجود.');
+        }
+    </script>
+</body>
+</html>
