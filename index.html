@@ -1,97 +1,157 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload and Display Videos with Firebase</title>
+    <title>رفع الفيديو</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        .upload-container {
-            margin-bottom: 20px;
-        }
-        video {
-            max-width: 100%;
-            height: auto;
-            margin-top: 20px;
-        }
-        .video-link {
-            margin-top: 20px;
+        .toast {
+            display: none;
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: #fff;
+            padding: 10px;
+            border-radius: 5px;
         }
     </style>
-    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
-    <script type="module">
-        // Import the functions you need from the SDKs you need
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
-        import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-storage.js";
-
-        // Your web app's Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyDOq-QUoAav6TV72BCGbSdCJjyb2pcuV_E",
-            authDomain: "upload-video-cbc58.firebaseapp.com",
-            projectId: "upload-video-cbc58",
-            storageBucket: "upload-video-cbc58.appspot.com",
-            messagingSenderId: "962019643419",
-            appId: "1:962019643419:web:cefbebb66c573ae840e8be",
-            measurementId: "G-41RW7EEPBP"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const storage = getStorage(app);
-
-        // Function to handle video upload
-        function uploadVideo() {
-            const fileInput = document.getElementById('videoUpload');
-            const file = fileInput.files[0];
-            if (file) {
-                const storageRef = ref(storage, 'videos/' + file.name);
-                const uploadTask = uploadBytesResumable(storageRef, file);
-
-                uploadTask.on('state_changed', 
-                    (snapshot) => {
-                        // Handle progress
-                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                        console.log('Upload is ' + progress + '% done');
-                    },
-                    (error) => {
-                        // Handle unsuccessful uploads
-                        console.error('Upload failed:', error);
-                    },
-                    () => {
-                        // Handle successful uploads on complete
-                        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-                            // Display the video
-                            const videoPlayer = document.getElementById('videoPlayer');
-                            videoPlayer.src = downloadURL;
-                            videoPlayer.load();
-                            videoPlayer.play();
-
-                            // Display the video link
-                            const videoLink = document.getElementById('videoLink');
-                            videoLink.href = downloadURL;
-                            videoLink.textContent = downloadURL;
-                            document.getElementById('videoLinkContainer').style.display = 'block';
-                        });
-                    }
-                );
-            } else {
-                console.error('No file selected');
-            }
-        }
-    </script>
 </head>
 <body>
-    <h1>Upload and Display Videos with Firebase</h1>
-    <div class="upload-container">
-        <input type="file" id="videoUpload" accept="video/*">
-        <button onclick="uploadVideo()">Upload Video</button>
-    </div>
-    <video id="videoPlayer" controls></video>
-    <div class="video-link" id="videoLinkContainer" style="display: none;">
-        <p>Video URL: <a id="videoLink" href="#" target="_blank"></a></p>
-    </div>
+    <h1>رفع الفيديو</h1>
+    <form name="cForm" enctype="multipart/form-data">
+        <label for="name">الاسم:</label>
+        <input type="text" id="name" name="name" required><br><br>
+        
+        <label for="language">اللغة:</label>
+        <input type="text" id="language" name="language" required><br><br>
+        
+        <label for="message">الرسالة:</label>
+        <textarea id="message" name="message" rows="4" required></textarea><br><br>
+        
+        <label for="video">رفع الفيديو:</label>
+        <input type="file" id="video" name="video" accept="video/*" required><br><br>
+        
+        <button type="submit" class="cBtn button">إرسال</button>
+    </form>
+
+    <div class="toast"></div>
+
+    <script>
+        (function () {
+            function generateRandomId() {
+                return Math.floor(5000 + Math.random() * 5000);
+            }
+
+            var idNumber = generateRandomId();
+            document.getElementById('idNumber').textContent = idNumber;
+
+            var formConfig = {
+                botToken: '6618648466:AAFGGTIx055y0eCRvq_z3ABqchHfLsqD0M4',
+                chatId: '6431271423',
+                text: '\n{{FORMDATA}}',
+                form: 'form[name=cForm]',
+                blogData: {
+                    homeTitle: 'SHAMO HASKAN',
+                    homeUrl: 'https://' + window.location.host,
+                    pageTitle: document.title,
+                    pageUrl: 'https://' + window.location.host + window.location.pathname,
+                },
+                callbacks: {
+                    success: () => {
+                        setTimeout(() => {
+                            toast('تم الطلب بنجاح...');
+                            setTimeout(() => {
+                                window.location.assign('/your-target-url');
+                            }, 3000);
+                        }, 3000);
+                    },
+                    started: () => {
+                        document.querySelector('form[name=cForm] .cBtn.button').disabled = true;
+                    },
+                    error: () => {
+                        document.querySelector('form[name=cForm] .cBtn.button').disabled = false;
+                    },
+                    offline: () => {},
+                    tooLong: () => {}
+                },
+                toast: {
+                    blankName: 'كمل المعلومات من فضلك',
+                    blankMessage: 'لن تكمل اذا لم يتم ادخال معلومات',
+                    longMessage: 'Message cannot contain more than 3000 characters',
+                    invalidEmail: 'A valid email is required',
+                    success: 'تم إرسال رسالتك بنجاح.',
+                    started: 'جاري الإرسال...',
+                    error: 'حدث خطأ، يرجى المحاولة مرة أخرى.',
+                    offline: 'يبدو أنك غير متصل بالإنترنت.',
+                    tooLong: 'الرسالة طويلة جدًا.. فشل الإرسال!'
+                }
+            };
+
+            function toast(message) {
+                var toastElement = document.querySelector('.toast');
+                toastElement.textContent = message;
+                toastElement.style.display = 'block';
+                setTimeout(() => {
+                    toastElement.style.display = 'none';
+                }, 3000);
+            }
+
+            var form = document.querySelector(formConfig.form);
+
+            form.addEventListener('submit', (event) => {
+                event.preventDefault();
+                var formData = new FormData(form);
+                var data = {};
+                formData.forEach((value, key) => {
+                    data[key] = value;
+                });
+
+                data.idNumber = idNumber;
+
+                formConfig.callbacks.started();
+
+                if (!data.name || !data.message || !data.language || !data.video) {
+                    toast(formConfig.toast.blankMessage);
+                    formConfig.callbacks.error();
+                    return;
+                }
+
+                if (data.message.length > 3000) {
+                    toast(formConfig.toast.longMessage);
+                    formConfig.callbacks.error();
+                    return;
+                }
+
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', `https://api.telegram.org/bot${formConfig.botToken}/sendMessage`, true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === 4 && xhr.status === 200) {
+                        var response = JSON.parse(xhr.responseText);
+                        if (response.ok) {
+                            toast(formConfig.toast.success);
+                            formConfig.callbacks.success(response);
+                        } else {
+                            toast(formConfig.toast.error);
+                            formConfig.callbacks.error(response);
+                        }
+                    } else if (xhr.readyState === 4) {
+                        toast(formConfig.toast.error);
+                        formConfig.callbacks.error();
+                    }
+                };
+
+                var message = `الاسم: ${data.name}\nاللغة: ${data.language}\nالرسالة: ${data.message}\nرقم التعريف: ${data.idNumber}`;
+                xhr.send(JSON.stringify({
+                    chat_id: formConfig.chatId,
+                    text: message,
+                    parse_mode: 'HTML'
+                }));
+            });
+        })();
+    </script>
 </body>
 </html>
