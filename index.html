@@ -3,54 +3,175 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>رفع الفيديو</title>
+    <title>عرض الصور والفيديو من Telegram</title>
     <style>
-        .toast {
-            display: none;
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 10px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        .post {
+            background-color: #ffffff;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease-in-out;
+        }
+        .post:hover {
+            transform: translateY(-5px);
+        }
+        .post img, .post video {
+            width: 100%;
+            display: block;
+            border-bottom: 1px solid #ddd;
+        }
+        .post-text {
+            padding: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+        }
+        .update-button {
             position: fixed;
             bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #333;
-            color: #fff;
-            padding: 10px;
-            border-radius: 5px;
+            right: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 50px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+        }
+        .update-button:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
 <body>
-    <h1>رفع الفيديو</h1>
-    <form id="uploadForm" enctype="multipart/form-data">
-        <label for="video">رفع الفيديو:</label>
-        <input type="file" id="video" name="video" accept="video/*" required><br><br>
-        
-        <button type="submit" class="cBtn button">إرسال</button>
-    </form>
 
-    <div class="toast"></div>
+    <div class="container" id="posts-container">
+        <!-- سيتم إدراج المنشورات هنا بواسطة JavaScript -->
+    </div>
+
+    <!-- زر تحديث الصفحة -->
+    <button class="update-button" onclick="location.reload();">تحديث الصفحة</button>
 
     <script>
-        document.getElementById('uploadForm').addEventListener('submit', function(event) {
-            event.preventDefault();
+        const token = '6618648466:AAFGGTIx055y0eCRvq_z3ABqchHfLsqD0M4';
+        const apiUrl = `https://api.telegram.org/bot${token}/getUpdates`;
+        let lastMessageId = 0; // لتتبع آخر رسالة تم عرضها
 
-            var formData = new FormData(this);
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', '/upload', true);
+        // جلب الصور والنصوص المحفوظة في Local Storage
+        function loadSavedPosts() {
+            const savedPosts = JSON.parse(localStorage.getItem('telegramPosts')) || [];
+            savedPosts.forEach(post => {
+                displayPost(post.mediaUrl, post.caption, post.type);
+            });
+        }
 
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    var response = JSON.parse(xhr.responseText);
-                    var videoUrl = response.videoUrl;
+        // حفظ الصور والنصوص في Local Storage
+        function savePost(mediaUrl, caption, type) {
+            const savedPosts = JSON.parse(localStorage.getItem('telegramPosts')) || [];
+            savedPosts.push({ mediaUrl, caption, type });
+            localStorage.setItem('telegramPosts', JSON.stringify(savedPosts));
+        }
 
-                    // توجيه المستخدم إلى صفحة عرض الفيديو
-                    window.location.href = 'html-video-p.html' + encodeURIComponent(videoUrl);
-                } else {
-                    console.error('فشل رفع الفيديو');
-                }
-            };
+        function fetchUpdates() {
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    const messages = data.result;
 
-            xhr.send(formData);
-        });
+                    messages.forEach(message => {
+                        // التأكد من أن الرسالة جديدة (لم يتم عرضها مسبقاً)
+                        if (message.message && message.message.message_id > lastMessageId) {
+                            lastMessageId = message.message.message_id;
+
+                            // تحقق مما إذا كانت الرسالة تحتوي على صورة
+                            if (message.message.photo) {
+                                const lastPhoto = message.message.photo[message.message.photo.length - 1]; // أخذ الصورة ذات الدقة العالية
+                                const fileId = lastPhoto.file_id;
+                                const caption = message.message.caption || 'صورة جديدة من تيليجرام'; // النص المرفق أو نص افتراضي
+                                fetchMedia(fileId, caption, 'photo');
+                            }
+
+                            // تحقق مما إذا كانت الرسالة تحتوي على فيديو
+                            if (message.message.video) {
+                                const videoFile = message.message.video.file_id;
+                                const caption = message.message.caption || 'فيديو جديد من تيليجرام'; // النص المرفق أو نص افتراضي
+                                fetchMedia(videoFile, caption, 'video');
+                            }
+                        }
+                    });
+                })
+                .catch(error => console.error('Error fetching updates:', error));
+        }
+
+        function fetchMedia(fileId, caption, type) {
+            const fileUrl = `https://api.telegram.org/bot${token}/getFile?file_id=${fileId}`;
+            fetch(fileUrl)
+                .then(response => response.json())
+                .then(data => {
+                    const filePath = data.result.file_path;
+                    const mediaUrl = `https://api.telegram.org/file/bot${token}/${filePath}`;
+                    
+                    // عرض الوسائط وحفظها في Local Storage
+                    displayPost(mediaUrl, caption, type);
+                    savePost(mediaUrl, caption, type);
+                })
+                .catch(error => console.error('Error fetching media:', error));
+        }
+
+        // عرض الوسائط (صور أو فيديوهات) والنص على الصفحة
+        function displayPost(mediaUrl, caption, type) {
+            const postsContainer = document.getElementById('posts-container');
+            
+            // إنشاء عنصر جديد للمنشور
+            const post = document.createElement('div');
+            post.classList.add('post');
+
+            // النص العلوي للمنشور
+            const postText = document.createElement('div');
+            postText.classList.add('post-text');
+            postText.innerText = caption;
+
+            // إضافة الوسائط (صورة أو فيديو)
+            let mediaElement;
+            if (type === 'photo') {
+                mediaElement = document.createElement('img');
+                mediaElement.src = mediaUrl;
+            } else if (type === 'video') {
+                mediaElement = document.createElement('video');
+                mediaElement.src = mediaUrl;
+                mediaElement.controls = true;
+            }
+
+            // إدراج النص والوسائط في المنشور
+            post.appendChild(postText);
+            post.appendChild(mediaElement);
+
+            // إضافة المنشور إلى الحاوية
+            postsContainer.appendChild(post);
+        }
+
+        // جلب التحديثات كل 30 ثانية
+        setInterval(fetchUpdates, 1000);
+
+        // تحميل المنشورات المحفوظة عند فتح الصفحة
+        window.onload = loadSavedPosts;
     </script>
+
 </body>
 </html>
