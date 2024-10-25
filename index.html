@@ -3,376 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram Media Fetcher</title>
+    <title>رفع صورة أو فيديو إلى تيليجرام</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-            direction: rtl;
-        }
-
-        .container {
-            width: 80%;
-            margin: 0 auto;
-        }
-
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 0;
-        }
-
-        h1 {
-            font-size: 24px;
             color: #333;
+            margin: 0;
+            padding: 20px;
         }
-
-        #upload-image {
-            display: inline-block;
-            margin-right: 10px;
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-
-        #upload-btn {
-            padding: 10px 20px;
-            background-color: #28a745;
-            color: #fff;
+        h1 {
+            text-align: center;
+            color: #5a5a5a;
+        }
+        #mediaInput {
+            width: 100%;
+            margin: 10px 0;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #5cb85c;
+            color: white;
             border: none;
-            cursor: pointer;
             border-radius: 5px;
+            cursor: pointer;
         }
-
-        .posts-container {
+        button:hover {
+            background-color: #4cae4c;
+        }
+        #posts-container {
             margin-top: 20px;
         }
-
         .post {
-            background-color: #fff;
-            border: 1px solid #ddd;
-            margin-bottom: 20px;
-            padding: 15px;
-            border-radius: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .post img, .post video {
-            max-width: 200px;
-            border-radius: 8px;
-        }
-
-        .post-text {
-            flex: 1;
-            margin-right: 20px;
-        }
-
-        .delete-btn {
-            background-color: #dc3545;
-            color: #fff;
-            border: none;
+            border: 1px solid #ccc;
             padding: 10px;
-            cursor: pointer;
+            margin: 10px 0;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .post-text {
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        img, video {
+            max-width: 100%;
             border-radius: 5px;
         }
-
-        #filter-select {
-            margin-top: 20px;
-            padding: 10px;
-        }
-        body {
-    font-family: Arial, sans-serif;
-    background-color: #f0f2f5;
-    color: #333;
-    margin: 0;
-    padding: 0;
-    direction: rtl;
-}
-
-.container {
-    width: 90%;
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-h1 {
-    font-size: 24px;
-    color: #333;
-}
-
-#upload-image {
-    display: inline-block;
-    margin-right: 10px;
-}
-
-#upload-btn {
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-    border-radius: 5px;
-    transition: background-color 0.3s;
-}
-
-#upload-btn:hover {
-    background-color: #0056b3;
-}
-
-.posts-container {
-    margin-top: 20px;
-}
-
-.post {
-    background-color: #fff;
-    border: 1px solid #ddd;
-    margin-bottom: 20px;
-    padding: 15px;
-    border-radius: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s;
-}
-
-.post:hover {
-    transform: scale(1.02);
-}
-
-.post img, .post video {
-    max-width: 200px;
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-}
-
-.post-text {
-    flex: 1;
-    margin-right: 20px;
-    font-size: 16px;
-    color: #555;
-}
-
-.delete-btn {
-    background-color: #dc3545;
-    color: #fff;
-    border: none;
-    padding: 10px;
-    cursor: pointer;
-    border-radius: 5px;
-    transition: background-color 0.3s;
-}
-
-.delete-btn:hover {
-    background-color: #c82333;
-}
-
-#filter-select {
-    margin-top: 20px;
-    padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #ddd;
-    background-color: #f8f9fa;
-    font-size: 16px;
-    color: #555;
-}
-
-#filter-select:focus {
-    outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-}
-        
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>المنشورات من تيليجرام</h1>
-            <input type="file" id="upload-image" accept="image/*">
-            <button id="upload-btn">نشر صورة</button>
-        </header>
-        <div id="posts-container" class="posts-container"></div>
-        <select id="filter-select">
-            <option value="all">عرض الجميع</option>
-            <option value="media">عرض الوسائط فقط</option>
-            <option value="filter">فلترة المحتوى غير اللائق</option>
-        </select>
+        <h1>رفع صورة أو فيديو إلى تيليجرام</h1>
+        <input type="file" id="mediaInput" accept="image/*,video/*">
+        <button id="uploadBtn">رفع</button>
+        <div id="posts-container"></div>
     </div>
-
     <script>
-        const token = '6618648466:AAFGGTIx055y0eCRvq_z3ABqchHfLsqD0M4';
-        const apiUrl = `https://api.telegram.org/bot${token}/getUpdates`;
-        let lastMessageId = 0; 
-        let filters = { showMedia: true, filterNSFW: false }; 
+        const token = '6618648466:AAFGGTIx055y0eCRvq_z3ABqchHfLsqD0M4'; // توكن البوت
+        const chatId = 'YOUR_CHAT_ID'; // استبدل هذا بـ ID المحادثة الصحيح
+        const apiUrl = `https://api.telegram.org/bot${token}/sendPhoto`; // لتحميل الصورة
+        const apiUrlVideo = `https://api.telegram.org/bot${token}/sendVideo`; // لتحميل الفيديو
+        let postsSet = new Set(); // مجموعة لتخزين معرفات المنشورات الفريدة
 
-        function loadSavedPosts() {
-            const savedPosts = JSON.parse(localStorage.getItem('telegramPosts')) || [];
-            savedPosts.forEach(post => {
-                if (filters.showMedia || post.type !== 'photo' && post.type !== 'video') {
-                    displayPost(post.mediaUrl, post.caption, post.type, post.messageId);
+        document.getElementById('uploadBtn').addEventListener('click', function() {
+            const mediaInput = document.getElementById('mediaInput');
+            const file = mediaInput.files[0];
+            if (file) {
+                const formData = new FormData();
+                formData.append('chat_id', chatId); // ID المحادثة
+                if (file.type.startsWith('video/')) {
+                    formData.append('video', file);
+                    uploadMedia(apiUrlVideo, formData, file);
+                } else {
+                    formData.append('photo', file);
+                    uploadMedia(apiUrl, formData, file);
                 }
-            });
-        }
-
-        function savePost(messageId, mediaUrl, caption, type) {
-            const savedPosts = JSON.parse(localStorage.getItem('telegramPosts')) || [];
-            if (!savedPosts.some(post => post.messageId === messageId)) { // منع التكرار
-                savedPosts.push({ messageId, mediaUrl, caption, type });
-                localStorage.setItem('telegramPosts', JSON.stringify(savedPosts));
             }
+        });
+
+        function uploadMedia(apiUrl, formData, file) {
+            fetch(apiUrl, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.ok) {
+                    const mediaUrl = `https://api.telegram.org/file/bot${token}/${data.result.file_path}`;
+                    displayPost(mediaUrl, file.name, file.type.split('/')[0]);
+                } else {
+                    console.error('Error uploading media:', data);
+                }
+            })
+            .catch(error => console.error('Error:', error));
         }
 
-        function deletePost(messageId) {
-            let savedPosts = JSON.parse(localStorage.getItem('telegramPosts')) || [];
-            savedPosts = savedPosts.filter(post => post.messageId !== messageId);
-            localStorage.setItem('telegramPosts', JSON.stringify(savedPosts));
-            document.getElementById(`post-${messageId}`).remove();
-        }
+        function displayPost(mediaUrl, caption, type) {
+            if (postsSet.has(mediaUrl)) {
+                return; // تجاهل المنشورات المكررة
+            }
+            postsSet.add(mediaUrl);
 
-        function fetchUpdates() {
-            fetch(apiUrl)
-                .then(response => response.json())
-                .then(data => {
-                    const messages = data.result;
-                    const savedPosts = JSON.parse(localStorage.getItem('telegramPosts')) || [];
-
-                    messages.forEach(message => {
-                        if (message.message && message.message.message_id > lastMessageId) {
-                            lastMessageId = message.message.message_id;
-
-                            if (message.message.text === 'ok') {
-                                displayPost('', 'تم كتابة "ok" في تيليجرام', 'text', message.message.message_id);
-                            }
-
-                            if (!savedPosts.some(post => post.messageId === message.message.message_id)) {
-                                if (message.message.photo) {
-                                    const lastPhoto = message.message.photo[message.message.photo.length - 1];
-                                    const fileId = lastPhoto.file_id;
-                                    const caption = message.message.caption || 'صورة جديدة من تيليجرام';
-                                    fetchMedia(fileId, caption, 'photo', message.message.message_id);
-                                }
-
-                                if (message.message.video) {
-                                    const videoFile = message.message.video.file_id;
-                                    const caption = message.message.caption || 'فيديو جديد من تيليجرام';
-                                    fetchMedia(videoFile, caption, 'video', message.message.message_id);
-                                }
-                            }
-                        }
-                    });
-                })
-                .catch(error => console.error('Error fetching updates:', error));
-        }
-
-        function fetchMedia(fileId, caption, type, messageId) {
-            const fileUrl = `https://api.telegram.org/bot${token}/getFile?file_id=${fileId}`;
-            fetch(fileUrl)
-                .then(response => response.json())
-                .then(data => {
-                    const filePath = data.result.file_path;
-                    const mediaUrl = `https://api.telegram.org/file/bot${token}/${filePath}`;
-
-                    if (filters.filterNSFW && isNSFW(caption)) {
-                        return; 
-                    }
-
-                    displayPost(mediaUrl, caption, type, messageId);
-                    savePost(messageId, mediaUrl, caption, type);
-                })
-                .catch(error => console.error('Error fetching media:', error));
-        }
-
-        function isNSFW(caption) {
-            const nsfwKeywords = ['sex', 'porn', 'nude']; 
-            return nsfwKeywords.some(keyword => caption.toLowerCase().includes(keyword));
-        }
-
-        function displayPost(mediaUrl, caption, type, messageId) {
             const postsContainer = document.getElementById('posts-container');
-            if (document.getElementById(`post-${messageId}`)) return; // منع التكرار
-
             const post = document.createElement('div');
             post.classList.add('post');
-            post.id = `post-${messageId}`;
 
             const postText = document.createElement('div');
             postText.classList.add('post-text');
             postText.innerText = caption;
 
             let mediaElement;
-            if (type === 'photo' && mediaUrl) {
+            if (type === 'image') {
                 mediaElement = document.createElement('img');
                 mediaElement.src = mediaUrl;
-            } else if (type === 'video' && mediaUrl) {
+            } else if (type === 'video') {
                 mediaElement = document.createElement('video');
                 mediaElement.src = mediaUrl;
                 mediaElement.controls = true;
             }
 
-            const deleteButton = document.createElement('button');
-            deleteButton.classList.add('delete-btn');
-            deleteButton.innerText = 'حذف';
-            deleteButton.onclick = () => deletePost(messageId);
-
             post.appendChild(postText);
-            if (mediaElement) post.appendChild(mediaElement);
-            post.appendChild(deleteButton);
-
+            post.appendChild(mediaElement);
             postsContainer.appendChild(post);
         }
-
-        document.getElementById('upload-btn').addEventListener('click', () => {
-            const fileInput = document.getElementById('upload-image');
-            if (fileInput.files.length > 0) {
-                const file = fileInput.files[0];
-                const formData = new FormData();
-                formData.append('chat_id', 'YOUR_CHAT_ID'); // استبدل `YOUR_CHAT_ID` بـ id المحادثة الخاصة بك
-                formData.append('photo', file);
-
-                fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Photo sent to Telegram:', data);
-                    const imgUrl = URL.createObjectURL(file);
-                    displayPost(imgUrl, 'صورة منشورة من المستخدم', 'photo', Date.now());
-                })
-                .catch(error => console.error('Error sending photo:', error));
-            }
-        });
-
-        setInterval(fetchUpdates, 1000);
-
-        window.onload = loadSavedPosts;
-
-        document.getElementById('filter-select').addEventListener('change', function(event) {
-            const value = event.target.value;
-            if (value === 'filter') {
-                filters.filterNSFW = !filters.filterNSFW;
-                event.target.value = 'all';
-            } else if (value === 'all') {
-                filters.showMedia = true;
-            } else {
-                filters.showMedia = value === 'media';
-            }
-            loadSavedPosts(); 
-        });
     </script>
 </body>
 </html>
