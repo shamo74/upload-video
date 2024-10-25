@@ -112,44 +112,14 @@
                     displayPost(post.mediaUrl, post.caption, post.type, post.messageId);
                 }
             });
-            function fetchUpdates() {
-    fetch(apiUrl)
-        .then(response => response.json())
-        .then(data => {
-            const messages = data.result;
-            const savedPosts = JSON.parse(localStorage.getItem('telegramPosts')) || [];
-
-            messages.forEach(message => {
-                if (message.message && message.message.message_id > lastMessageId) {
-                    // تأكد من أن الرسالة لم تُعرض مسبقًا
-                    if (!savedPosts.some(post => post.messageId === message.message.message_id)) {
-                        lastMessageId = message.message.message_id;
-
-                        if (message.message.photo) {
-                            const lastPhoto = message.message.photo[message.message.photo.length - 1];
-                            const fileId = lastPhoto.file_id;
-                            const caption = message.message.caption || 'صورة جديدة من تيليجرام';
-                            fetchMedia(fileId, caption, 'photo', message.message.message_id);
-                        }
-
-                        if (message.message.video) {
-                            const videoFile = message.message.video.file_id;
-                            const caption = message.message.caption || 'فيديو جديد من تيليجرام';
-                            fetchMedia(videoFile, caption, 'video', message.message.message_id);
-                        }
-                    }
-                }
-            });
-        })
-        .catch(error => console.error('Error fetching updates:', error));
-            }
-            
         }
 
         function savePost(messageId, mediaUrl, caption, type) {
             const savedPosts = JSON.parse(localStorage.getItem('telegramPosts')) || [];
-            savedPosts.push({ messageId, mediaUrl, caption, type });
-            localStorage.setItem('telegramPosts', JSON.stringify(savedPosts));
+            if (!savedPosts.some(post => post.messageId === messageId)) { // منع التكرار
+                savedPosts.push({ messageId, mediaUrl, caption, type });
+                localStorage.setItem('telegramPosts', JSON.stringify(savedPosts));
+            }
         }
 
         function deletePost(messageId) {
@@ -164,22 +134,29 @@
                 .then(response => response.json())
                 .then(data => {
                     const messages = data.result;
+                    const savedPosts = JSON.parse(localStorage.getItem('telegramPosts')) || [];
 
                     messages.forEach(message => {
                         if (message.message && message.message.message_id > lastMessageId) {
                             lastMessageId = message.message.message_id;
 
-                            if (message.message.photo) {
-                                const lastPhoto = message.message.photo[message.message.photo.length - 1];
-                                const fileId = lastPhoto.file_id;
-                                const caption = message.message.caption || 'صورة جديدة من تيليجرام';
-                                fetchMedia(fileId, caption, 'photo', message.message.message_id);
+                            if (message.message.text === 'ok') {
+                                displayPost('', 'تم كتابة "ok" في تيليجرام', 'text', message.message.message_id);
                             }
 
-                            if (message.message.video) {
-                                const videoFile = message.message.video.file_id;
-                                const caption = message.message.caption || 'فيديو جديد من تيليجرام';
-                                fetchMedia(videoFile, caption, 'video', message.message.message_id);
+                            if (!savedPosts.some(post => post.messageId === message.message.message_id)) {
+                                if (message.message.photo) {
+                                    const lastPhoto = message.message.photo[message.message.photo.length - 1];
+                                    const fileId = lastPhoto.file_id;
+                                    const caption = message.message.caption || 'صورة جديدة من تيليجرام';
+                                    fetchMedia(fileId, caption, 'photo', message.message.message_id);
+                                }
+
+                                if (message.message.video) {
+                                    const videoFile = message.message.video.file_id;
+                                    const caption = message.message.caption || 'فيديو جديد من تيليجرام';
+                                    fetchMedia(videoFile, caption, 'video', message.message.message_id);
+                                }
                             }
                         }
                     });
@@ -212,6 +189,7 @@
 
         function displayPost(mediaUrl, caption, type, messageId) {
             const postsContainer = document.getElementById('posts-container');
+            if (document.getElementById(`post-${messageId}`)) return; // منع التكرار
 
             const post = document.createElement('div');
             post.classList.add('post');
@@ -222,10 +200,10 @@
             postText.innerText = caption;
 
             let mediaElement;
-            if (type === 'photo') {
+            if (type === 'photo' && mediaUrl) {
                 mediaElement = document.createElement('img');
                 mediaElement.src = mediaUrl;
-            } else if (type === 'video') {
+            } else if (type === 'video' && mediaUrl) {
                 mediaElement = document.createElement('video');
                 mediaElement.src = mediaUrl;
                 mediaElement.controls = true;
@@ -237,7 +215,7 @@
             deleteButton.onclick = () => deletePost(messageId);
 
             post.appendChild(postText);
-            post.appendChild(mediaElement);
+            if (mediaElement) post.appendChild(mediaElement);
             post.appendChild(deleteButton);
 
             postsContainer.appendChild(post);
@@ -247,12 +225,21 @@
             const fileInput = document.getElementById('upload-image');
             if (fileInput.files.length > 0) {
                 const file = fileInput.files[0];
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    const imgUrl = e.target.result;
+                const formData = new FormData();
+                formData.append('chat_id', 'YOUR_CHAT_ID'); // استبدل `YOUR_CHAT_ID` بـ id المحادثة الخاصة بك
+                formData.append('photo', file);
+
+                fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Photo sent to Telegram:', data);
+                    const imgUrl = URL.createObjectURL(file);
                     displayPost(imgUrl, 'صورة منشورة من المستخدم', 'photo', Date.now());
-                };
-                reader.readAsDataURL(file);
+                })
+                .catch(error => console.error('Error sending photo:', error));
             }
         });
 
@@ -270,7 +257,7 @@
             } else {
                 filters.showMedia = value === 'media';
             }
-            loadSavedPosts();
+            loadSavedPosts(); 
         });
     </script>
 </body>
