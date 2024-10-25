@@ -28,6 +28,13 @@
             width: 100%;
             margin: 10px 0;
         }
+        #titleInput, #descriptionInput {
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
         button {
             width: 100%;
             padding: 10px;
@@ -63,6 +70,8 @@
 <body>
     <div class="container">
         <h1>رفع صورة أو فيديو إلى تيليجرام</h1>
+        <input type="text" id="titleInput" placeholder="عنوان المنشور">
+        <input type="text" id="descriptionInput" placeholder="وصف المنشور">
         <input type="file" id="mediaInput" accept="image/*,video/*">
         <button id="uploadBtn">رفع</button>
         <div id="posts-container"></div>
@@ -75,22 +84,27 @@
         let pendingPosts = []; // لتخزين المنشورات التي في انتظار الموافقة
 
         document.getElementById('uploadBtn').addEventListener('click', function() {
+            const title = document.getElementById('titleInput').value;
+            const description = document.getElementById('descriptionInput').value;
             const mediaInput = document.getElementById('mediaInput');
             const file = mediaInput.files[0];
-            if (file) {
+
+            if (title && description && file) {
                 const formData = new FormData();
                 formData.append('chat_id', chatId); // ID المحادثة
                 if (file.type.startsWith('video/')) {
                     formData.append('video', file);
-                    uploadMedia(apiUrlVideo, formData, file);
+                    uploadMedia(apiUrlVideo, formData, title, description);
                 } else {
                     formData.append('photo', file);
-                    uploadMedia(apiUrl, formData, file);
+                    uploadMedia(apiUrl, formData, title, description);
                 }
+            } else {
+                alert("يرجى ملء العنوان والوصف واختيار ملف.");
             }
         });
 
-        function uploadMedia(apiUrl, formData, file) {
+        function uploadMedia(apiUrl, formData, title, description) {
             fetch(apiUrl, {
                 method: 'POST',
                 body: formData
@@ -100,7 +114,7 @@
                 if (data.ok) {
                     // قم بتخزين معرف الرسالة وتفاصيلها لانتظار الموافقة
                     const mediaUrl = `https://api.telegram.org/file/bot${token}/${data.result.file_path}`;
-                    pendingPosts.push({ mediaUrl, caption: file.name });
+                    pendingPosts.push({ mediaUrl, title, description });
                     alert('تم رفع الوسائط بنجاح، انتظر الموافقة.');
                 } else {
                     console.error('Error uploading media:', data);
@@ -120,7 +134,7 @@
                         if (message.message && message.message.text === 'ok') {
                             const pendingPost = pendingPosts.shift(); // احصل على أول منشور في الانتظار
                             if (pendingPost) {
-                                displayPost(pendingPost.mediaUrl, pendingPost.caption);
+                                displayPost(pendingPost.mediaUrl, pendingPost.title, pendingPost.description);
                             }
                         }
                     });
@@ -128,26 +142,31 @@
                 .catch(error => console.error('Error fetching updates:', error));
         }
 
-        function displayPost(mediaUrl, caption) {
+        function displayPost(mediaUrl, title, description) {
             const postsContainer = document.getElementById('posts-container');
             const post = document.createElement('div');
             post.classList.add('post');
 
-            const postText = document.createElement('div');
-            postText.classList.add('post-text');
-            postText.innerText = caption;
+            const postTitle = document.createElement('div');
+            postTitle.classList.add('post-text');
+            postTitle.innerText = title;
+
+            const postDescription = document.createElement('div');
+            postDescription.classList.add('post-text');
+            postDescription.innerText = description;
 
             let mediaElement;
-            if (caption.endsWith('.jpg') || caption.endsWith('.png')) {
+            if (mediaUrl.endsWith('.jpg') || mediaUrl.endsWith('.png')) {
                 mediaElement = document.createElement('img');
                 mediaElement.src = mediaUrl;
-            } else if (caption.endsWith('.mp4')) {
+            } else if (mediaUrl.endsWith('.mp4')) {
                 mediaElement = document.createElement('video');
                 mediaElement.src = mediaUrl;
                 mediaElement.controls = true;
             }
 
-            post.appendChild(postText);
+            post.appendChild(postTitle);
+            post.appendChild(postDescription);
             post.appendChild(mediaElement);
             postsContainer.appendChild(post);
         }
