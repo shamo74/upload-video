@@ -112,6 +112,38 @@
                     displayPost(post.mediaUrl, post.caption, post.type, post.messageId);
                 }
             });
+            function fetchUpdates() {
+    fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+            const messages = data.result;
+            const savedPosts = JSON.parse(localStorage.getItem('telegramPosts')) || [];
+
+            messages.forEach(message => {
+                if (message.message && message.message.message_id > lastMessageId) {
+                    // تأكد من أن الرسالة لم تُعرض مسبقًا
+                    if (!savedPosts.some(post => post.messageId === message.message.message_id)) {
+                        lastMessageId = message.message.message_id;
+
+                        if (message.message.photo) {
+                            const lastPhoto = message.message.photo[message.message.photo.length - 1];
+                            const fileId = lastPhoto.file_id;
+                            const caption = message.message.caption || 'صورة جديدة من تيليجرام';
+                            fetchMedia(fileId, caption, 'photo', message.message.message_id);
+                        }
+
+                        if (message.message.video) {
+                            const videoFile = message.message.video.file_id;
+                            const caption = message.message.caption || 'فيديو جديد من تيليجرام';
+                            fetchMedia(videoFile, caption, 'video', message.message.message_id);
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => console.error('Error fetching updates:', error));
+            }
+            
         }
 
         function savePost(messageId, mediaUrl, caption, type) {
