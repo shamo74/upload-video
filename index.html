@@ -72,7 +72,7 @@
         const chatId = '6431271423'; // استبدل هذا بـ ID المحادثة الصحيح
         const apiUrl = `https://api.telegram.org/bot${token}/sendPhoto`; // لتحميل الصورة
         const apiUrlVideo = `https://api.telegram.org/bot${token}/sendVideo`; // لتحميل الفيديو
-        let postsSet = new Set(); // مجموعة لتخزين معرفات المنشورات الفريدة
+        let pendingPosts = []; // لتخزين المنشورات التي في انتظار الموافقة
 
         document.getElementById('uploadBtn').addEventListener('click', function() {
             const mediaInput = document.getElementById('mediaInput');
@@ -98,8 +98,10 @@
             .then(response => response.json())
             .then(data => {
                 if (data.ok) {
+                    // قم بتخزين معرف الرسالة وتفاصيلها لانتظار الموافقة
                     const mediaUrl = `https://api.telegram.org/file/bot${token}/${data.result.file_path}`;
-                    displayPost(mediaUrl, file.name, file.type.split('/')[0]);
+                    pendingPosts.push({ mediaUrl, caption: file.name });
+                    alert('تم رفع الوسائط بنجاح، انتظر الموافقة.');
                 } else {
                     console.error('Error uploading media:', data);
                 }
@@ -107,12 +109,26 @@
             .catch(error => console.error('Error:', error));
         }
 
-        function displayPost(mediaUrl, caption, type) {
-            if (postsSet.has(mediaUrl)) {
-                return; // تجاهل المنشورات المكررة
-            }
-            postsSet.add(mediaUrl);
+        // دالة لاستقبال التحديثات من البوت
+        function fetchUpdates() {
+            const apiUrlUpdates = `https://api.telegram.org/bot${token}/getUpdates`;
+            fetch(apiUrlUpdates)
+                .then(response => response.json())
+                .then(data => {
+                    const messages = data.result;
+                    messages.forEach(message => {
+                        if (message.message && message.message.text === 'ok') {
+                            const pendingPost = pendingPosts.shift(); // احصل على أول منشور في الانتظار
+                            if (pendingPost) {
+                                displayPost(pendingPost.mediaUrl, pendingPost.caption);
+                            }
+                        }
+                    });
+                })
+                .catch(error => console.error('Error fetching updates:', error));
+        }
 
+        function displayPost(mediaUrl, caption) {
             const postsContainer = document.getElementById('posts-container');
             const post = document.createElement('div');
             post.classList.add('post');
@@ -122,10 +138,10 @@
             postText.innerText = caption;
 
             let mediaElement;
-            if (type === 'image') {
+            if (caption.endsWith('.jpg') || caption.endsWith('.png')) {
                 mediaElement = document.createElement('img');
                 mediaElement.src = mediaUrl;
-            } else if (type === 'video') {
+            } else if (caption.endsWith('.mp4')) {
                 mediaElement = document.createElement('video');
                 mediaElement.src = mediaUrl;
                 mediaElement.controls = true;
@@ -135,6 +151,9 @@
             post.appendChild(mediaElement);
             postsContainer.appendChild(post);
         }
+
+        // جلب التحديثات كل 5 ثواني
+        setInterval(fetchUpdates, 5000);
     </script>
 </body>
 </html>
